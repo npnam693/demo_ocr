@@ -31,15 +31,15 @@
 
 	{% if prediction %}
     <div class="row">
-      <div class="col-md-6">
-        <img src="data:image/png;base64,{{img_path}}" width="400px" alt="receipt"/>
+      <div class="col-md-5">
+        <img src="data:image/png;base64,{{img_path}}" width="100%" alt="receipt"/>
       </div>
-      <div class="col-md-6">
+      <div class="col-md-7">
         <h2> Your Prediction:</h2>
-        <p>Company: {{prediction.company}}</p>
-        <p>Address: {{prediction.address}}</p>
-        <p>Date: {{prediction.date}}</p>
-        <p>Total: {{prediction.total}}</p>
+        <p><strong>Company:</strong> {{prediction.company}}</p>
+        <p><strong>Address:</strong> {{prediction.address}}</p>
+        <p><strong>Date:</strong> {{prediction.date}}</p>
+        <p><strong>Total:</strong> {{prediction.total}}</p>
       </div>
     </div>
 

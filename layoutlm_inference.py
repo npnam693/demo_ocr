@@ -3,6 +3,9 @@ from transformers import LayoutLMForTokenClassification, LayoutLMv2Processor, La
 from PIL import Image, ImageDraw, ImageFont
 import io
 import base64
+from preprocess import preprocess_image
+import cv2
+import numpy as np
 
 # tokenizer = LayoutLMv2TokenizerFast.from_pretrained("microsoft/layoutlmv2-base-uncased")
 # model = LayoutLMForTokenClassification.from_pretrained("trng1305/layoutlmv2-sroie-test")
@@ -12,8 +15,6 @@ import base64
 tokenizer = LayoutLMv2TokenizerFast.from_pretrained("./my-tokenizer")
 model = LayoutLMForTokenClassification.from_pretrained("./my-model")
 processor = LayoutLMv2Processor.from_pretrained("./my-processor")
-# processor.save_pretrained("./my-processor")
-# # tokenizer.save_pretrained("./my-tokenizer")
 
 
 
@@ -65,6 +66,7 @@ def run_inference(path, model=model, processor=processor, output_image=True):
     id2label = {v: k for v, k in enumerate(labels)}
 
     image = Image.open(io.BytesIO(path)).convert("RGB")
+    image = preprocess_image(cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR))
     encoding = processor(image, return_tensors="pt")
     # print(encoding)
     del encoding["image"]
@@ -106,11 +108,11 @@ def run_inference(path, model=model, processor=processor, output_image=True):
       print(listText)
 
     keyExtracted[id2label[1]] = tokenizer.decode(listToken[1]).upper()
-    keyExtracted[id2label[2]] = tokenizer.decode(listToken[2]).upper()
+    keyExtracted[id2label[2]] = tokenizer.decode(listToken[2]).upper().replace(" ", "")
     keyExtracted[id2label[3]] = tokenizer.decode(listToken[3]).upper()
-    keyExtracted[id2label[4]] = tokenizer.decode(listToken[4]).upper()
+    keyExtracted[id2label[4]] = tokenizer.decode(listToken[4]).upper().replace(" ", "")
     handleTotal(listToken[4])
-    print(keyExtracted)
+    # print(keyExtracted)
     labels = [model.config.id2label[prediction] for prediction in predictions]
     if output_image:
         return keyExtracted, draw_boxes(image, encoding["bbox"][0], labels)
