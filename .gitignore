@@ -1,3 +1,5 @@
-/my-model
-/my-processor
-/my-tokenizer
+my-model
+my-processor
+my-tokenizer
+tempCodeRunnerFile.py
+__pycache__/
