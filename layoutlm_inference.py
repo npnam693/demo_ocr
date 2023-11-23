@@ -44,7 +44,7 @@ def draw_boxes(image, boxes, predictions):
     for prediction, box in zip(predictions, normalizes_boxes):
         if prediction == "O":
             continue
-        print(prediction, box)
+        # print(prediction, box)
         draw.rectangle(box, outline="black")
         draw.rectangle(box, outline=label2color[prediction])
         draw.text((box[0] + 10, box[1] - 10), text=prediction, fill=label2color[prediction], font=font)
@@ -101,12 +101,20 @@ def run_inference(path, model=model, processor=processor, output_image=True):
         listText = []
         for token in listToken:
           listText.append(tokenizer.decode(token))
-      print(listText)
+
+        has_dot = any("." in word for word in listText)
+        text = ''.join(listText)
+        if (not has_dot):
+          text = listText[0] + '.' + ''.join(listText[1:])
+        return text
+
+
+
 
     keyExtracted[id2label[1]] = tokenizer.decode(listToken[1]).upper()
     keyExtracted[id2label[2]] = tokenizer.decode(listToken[2]).upper().replace(" ", "")
     keyExtracted[id2label[3]] = tokenizer.decode(listToken[3]).upper()
-    keyExtracted[id2label[4]] = tokenizer.decode(listToken[4]).upper().replace(" ", "")
+    keyExtracted[id2label[4]] = handleTotal(listToken[4])
     handleTotal(listToken[4])
     # print(keyExtracted)
     labels = [model.config.id2label[prediction] for prediction in predictions]
