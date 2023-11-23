@@ -12,8 +12,6 @@ import base64
 tokenizer = LayoutLMv2TokenizerFast.from_pretrained("./my-tokenizer")
 model = LayoutLMForTokenClassification.from_pretrained("./my-model")
 processor = LayoutLMv2Processor.from_pretrained("./my-processor")
-# processor.save_pretrained("./my-processor")
-# # tokenizer.save_pretrained("./my-tokenizer")
 
 
 
@@ -106,11 +104,11 @@ def run_inference(path, model=model, processor=processor, output_image=True):
       print(listText)
 
     keyExtracted[id2label[1]] = tokenizer.decode(listToken[1]).upper()
-    keyExtracted[id2label[2]] = tokenizer.decode(listToken[2]).upper()
+    keyExtracted[id2label[2]] = tokenizer.decode(listToken[2]).upper().replace(" ", "")
     keyExtracted[id2label[3]] = tokenizer.decode(listToken[3]).upper()
-    keyExtracted[id2label[4]] = tokenizer.decode(listToken[4]).upper()
+    keyExtracted[id2label[4]] = tokenizer.decode(listToken[4]).upper().replace(" ", "")
     handleTotal(listToken[4])
-    print(keyExtracted)
+    # print(keyExtracted)
     labels = [model.config.id2label[prediction] for prediction in predictions]
     if output_image:
         return keyExtracted, draw_boxes(image, encoding["bbox"][0], labels)
