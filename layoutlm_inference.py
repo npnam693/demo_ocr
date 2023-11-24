@@ -17,7 +17,6 @@ model = LayoutLMForTokenClassification.from_pretrained("./my-model")
 processor = LayoutLMv2Processor.from_pretrained("./my-processor")
 
 
-
 def unnormalize_box(bbox, width, height):
   return [
       width * (bbox[0] / 1000),
@@ -85,8 +84,11 @@ def run_inference(path, model=model, processor=processor, output_image=True):
     listToken = {1: [], 2: [], 3: [], 4: []}
     keyExtracted = {}
 
-    
+    previous = None
     for i in range(len(myBbox)):
+      #xmin, ymin, xmax, ymax
+      # print(myBbox[i])
+      # print(myBbox[i][0].item())
       if predictions[i] == 1:
         listToken[1].append(encoding["input_ids"][0][i])
       elif predictions[i] == 2:
@@ -94,23 +96,44 @@ def run_inference(path, model=model, processor=processor, output_image=True):
       elif predictions[i] == 3:
         listToken[3].append(encoding["input_ids"][0][i])
       elif predictions[i] == 4:
-        listToken[4].append(encoding["input_ids"][0][i])
+        print(myBbox[i])
+        if len(listToken[4]) == 0:
+          listToken[4].append([encoding["input_ids"][0][i]])
+          previous = i
+        else:
+          if myBbox[i][1] <= myBbox[previous][3] and myBbox[i][3] >= myBbox[previous][1] and (myBbox[i][0] - myBbox[previous][2]) < 35:
+            listToken[4][-1].append(encoding["input_ids"][0][i])
+          else:
+             listToken[4].append([encoding["input_ids"][0][i]])
+             previous = i
 
+    def handleTotal(listToken):
+      totals = []
+      for i in range(len(listToken)):
+          total = []
+          for j in range(len(listToken[i])):
+            total.append(tokenizer.decode(listToken[i][j]).replace("#", ""))
 
+          has_dot = any("." in word for word in total)
+          text = ''.join(total)
+          if (not has_dot and len(total) > 1):
+            text = total[0] + '.' + ''.join(total[1:])
+          totals.append(text)
+      totals = [float(t) for t in totals]
+      return max(totals) if len(totals) > 0 else "Null"
 
-    def handleTotal(listToken): 
-      if (len(listToken) == 0):
-        return tokenizer.decode(listToken)
-      else:
-        listText = []
-        for token in listToken:
-          listText.append(tokenizer.decode(token))
-
-        has_dot = any("." in word for word in listText)
-        text = ''.join(listText)
-        if (not has_dot):
-          text = listText[0] + '.' + ''.join(listText[1:])
-        return text
+      # if (len(listToken) == 0):
+      #   return tokenizer.decode(listToken)
+      # else:
+      #   listText = []
+      #   for token in listToken:
+      #     listText.append(tokenizer.decode(token).replace("#", ""))
+      #   print(listText)
+      #   has_dot = any("." in word for word in listText)
+      #   text = ''.join(listText)
+      #   if (not has_dot):
+      #     text = listText[0] + '.' + ''.join(listText[1:])
+      #   return text
 
 
 
@@ -119,7 +142,7 @@ def run_inference(path, model=model, processor=processor, output_image=True):
     keyExtracted[id2label[2]] = tokenizer.decode(listToken[2]).upper().replace(" ", "")
     keyExtracted[id2label[3]] = tokenizer.decode(listToken[3]).upper()
     keyExtracted[id2label[4]] = handleTotal(listToken[4])
-    handleTotal(listToken[4])
+    # handleTotal(listToken[4])
     # print(keyExtracted)
     labels = [model.config.id2label[prediction] for prediction in predictions]
     if output_image:
