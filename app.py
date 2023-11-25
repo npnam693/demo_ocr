@@ -19,9 +19,8 @@ def about_page():
 @app.route("/submit", methods = ['GET', 'POST'])
 def get_output():
     file = request.files['my_image']
-    # file.save('static/' + file.filename)
     p, image = run_inference(file.read())
-    return render_template("index.html", prediction = p, img_path = image)
+    return render_template("index.html", prediction = p, img_path = file.filename, image = image)
 
 if __name__ =='__main__':
 	#app.debug = True

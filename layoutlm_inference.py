@@ -1,3 +1,4 @@
+      # elif predictions[i] == 4 or (i > 0 and torch.equal(myBbox[i-1],myBbox[i]) and predictions[i-1] == 4):
 from datasets import load_dataset
 from transformers import LayoutLMForTokenClassification, LayoutLMv2Processor, LayoutLMv2TokenizerFast
 from PIL import Image, ImageDraw, ImageFont
@@ -6,7 +7,7 @@ import base64
 from preprocess import preprocess_image
 import cv2
 import numpy as np
-
+import torch
 # tokenizer = LayoutLMv2TokenizerFast.from_pretrained("microsoft/layoutlmv2-base-uncased")
 # model = LayoutLMForTokenClassification.from_pretrained("trng1305/layoutlmv2-sroie-test")
 # processor = LayoutLMv2Processor.from_pretrained("trng1305/layoutlmv2-sroie-test")
@@ -64,6 +65,7 @@ def run_inference(path, model=model, processor=processor, output_image=True):
     labels = ['O', 'company', 'date', 'address', 'total']
     id2label = {v: k for v, k in enumerate(labels)}
 
+    # image = Image.open(path)
     image = Image.open(io.BytesIO(path))
     image = preprocess_image(np.array(image))
     encoding = processor(image, return_tensors="pt")
@@ -73,82 +75,35 @@ def run_inference(path, model=model, processor=processor, output_image=True):
     # run inference
     outputs = model(**encoding)
     predictions = outputs.logits.argmax(-1).squeeze().tolist()
-    # get labels
-    decoded_texts = []
-
-
-    myBbox = encoding["bbox"][0]
-    myTokenIds = encoding["input_ids"][0]
-    
-    curLabel = 0
+    bBoxs = encoding["bbox"][0]
     listToken = {1: [], 2: [], 3: [], 4: []}
     keyExtracted = {}
+    curBbox = None
+    curLabel = 0
+    print(curBbox)
 
-    previous = None
-    for i in range(len(myBbox)):
-      #xmin, ymin, xmax, ymax
-      # print(myBbox[i])
-      # print(myBbox[i][0].item())
-      if predictions[i] == 1:
-        listToken[1].append(encoding["input_ids"][0][i])
-      elif predictions[i] == 2:
-        listToken[2].append(encoding["input_ids"][0][i])
-      elif predictions[i] == 3:
-        listToken[3].append(encoding["input_ids"][0][i])
-      elif predictions[i] == 4:
-        print(myBbox[i])
-        if len(listToken[4]) == 0:
-          listToken[4].append([encoding["input_ids"][0][i]])
-          previous = i
-        else:
-          if myBbox[i][1] <= myBbox[previous][3] and myBbox[i][3] >= myBbox[previous][1] and (myBbox[i][0] - myBbox[previous][2]) < 35:
-            listToken[4][-1].append(encoding["input_ids"][0][i])
-          else:
-             listToken[4].append([encoding["input_ids"][0][i]])
-             previous = i
+    for i in range(len(bBoxs)):
+      if curBbox is not None and predictions[i] == 0 and torch.equal(curBbox,bBoxs[i]) and curLabel != 0:
+        listToken[curLabel].append(encoding["input_ids"][0][i])
+      elif predictions[i] == 0:
+        curBbox = None
+        curLabel = 0
+      else:
+        listToken[predictions[i]].append(encoding["input_ids"][0][i])
+        curBbox = bBoxs[i]
+        curLabel = predictions[i]
 
-    def handleTotal(listToken):
-      totals = []
-      for i in range(len(listToken)):
-          total = []
-          for j in range(len(listToken[i])):
-            total.append(tokenizer.decode(listToken[i][j]).replace("#", ""))
-
-          has_dot = any("." in word for word in total)
-          text = ''.join(total)
-          if (not has_dot and len(total) > 1):
-            text = total[0] + '.' + ''.join(total[1:])
-          totals.append(text)
-      totals = [float(t) for t in totals]
-      return max(totals) if len(totals) > 0 else "Null"
-
-      # if (len(listToken) == 0):
-      #   return tokenizer.decode(listToken)
-      # else:
-      #   listText = []
-      #   for token in listToken:
-      #     listText.append(tokenizer.decode(token).replace("#", ""))
-      #   print(listText)
-      #   has_dot = any("." in word for word in listText)
-      #   text = ''.join(listText)
-      #   if (not has_dot):
-      #     text = listText[0] + '.' + ''.join(listText[1:])
-      #   return text
-
-
-
-
+    # print(listToken)
     keyExtracted[id2label[1]] = tokenizer.decode(listToken[1]).upper()
     keyExtracted[id2label[2]] = tokenizer.decode(listToken[2]).upper().replace(" ", "")
     keyExtracted[id2label[3]] = tokenizer.decode(listToken[3]).upper()
-    keyExtracted[id2label[4]] = handleTotal(listToken[4])
-    # handleTotal(listToken[4])
-    # print(keyExtracted)
+    keyExtracted[id2label[4]] = tokenizer.decode(listToken[4]).upper().replace(" ", "")
+    print(keyExtracted)
     labels = [model.config.id2label[prediction] for prediction in predictions]
     if output_image:
         return keyExtracted, draw_boxes(image, encoding["bbox"][0], labels)
     else:
         return labels
-    
 
-# run_inference("./000.jpg")
+
+# run_inference("./016.jpg")
