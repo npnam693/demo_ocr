@@ -1,6 +1,6 @@
       # elif predictions[i] == 4 or (i > 0 and torch.equal(myBbox[i-1],myBbox[i]) and predictions[i-1] == 4):
 from datasets import load_dataset
-from transformers import LayoutLMForTokenClassification, LayoutLMv2Processor, LayoutLMv2TokenizerFast
+from transformers import LayoutLMForTokenClassification, LayoutLMv2Processor, LayoutLMv2TokenizerFast, LayoutLMv2ImageProcessor
 from PIL import Image, ImageDraw, ImageFont
 import io
 import base64
@@ -15,7 +15,8 @@ import torch
 
 tokenizer = LayoutLMv2TokenizerFast.from_pretrained("./my-tokenizer")
 model = LayoutLMForTokenClassification.from_pretrained("./my-model")
-processor = LayoutLMv2Processor.from_pretrained("./my-processor")
+processor = LayoutLMv2Processor(LayoutLMv2ImageProcessor(tesseract_config=r'--oem 3 --psm 6'), tokenizer)
+# processor = LayoutLMv2Processor.from_pretrained("./my-processor")
 
 
 def unnormalize_box(bbox, width, height):
@@ -92,8 +93,9 @@ def run_inference(path, model=model, processor=processor, output_image=True):
         curBbox = None
         curLabel = 0
       else:
+        #xmin,ymin,xmax,ymax
         if predictions[i] == 4:
-          if curBbox is None or not torch.equal(curBbox, bBoxs[i]):
+          if curBbox is None or not (bBoxs[i][1] < curBbox[3] and bBoxs[i][3] > curBbox[1] and (bBoxs[i][0] - curBbox[2]) < 35):
             listToken[predictions[i]].append([encoding["input_ids"][0][i]])
           else:
              listToken[predictions[i]][-1].append(encoding["input_ids"][0][i])
