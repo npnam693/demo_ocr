@@ -80,16 +80,25 @@ def run_inference(path, model=model, processor=processor, output_image=True):
     keyExtracted = {}
     curBbox = None
     curLabel = 0
-    print(curBbox)
+    # print(curBbox)
 
     for i in range(len(bBoxs)):
       if curBbox is not None and predictions[i] == 0 and torch.equal(curBbox,bBoxs[i]) and curLabel != 0:
-        listToken[curLabel].append(encoding["input_ids"][0][i])
+        if curLabel == 4:
+           listToken[curLabel][-1].append(encoding["input_ids"][0][i])
+        else:
+          listToken[curLabel].append(encoding["input_ids"][0][i])
       elif predictions[i] == 0:
         curBbox = None
         curLabel = 0
       else:
-        listToken[predictions[i]].append(encoding["input_ids"][0][i])
+        if predictions[i] == 4:
+          if curBbox is None or not torch.equal(curBbox, bBoxs[i]):
+            listToken[predictions[i]].append([encoding["input_ids"][0][i]])
+          else:
+             listToken[predictions[i]][-1].append(encoding["input_ids"][0][i])
+        else:
+          listToken[predictions[i]].append(encoding["input_ids"][0][i])
         curBbox = bBoxs[i]
         curLabel = predictions[i]
 
@@ -97,7 +106,7 @@ def run_inference(path, model=model, processor=processor, output_image=True):
     keyExtracted[id2label[1]] = tokenizer.decode(listToken[1]).upper()
     keyExtracted[id2label[2]] = tokenizer.decode(listToken[2]).upper().replace(" ", "")
     keyExtracted[id2label[3]] = tokenizer.decode(listToken[3]).upper()
-    keyExtracted[id2label[4]] = tokenizer.decode(listToken[4]).upper().replace(" ", "")
+    keyExtracted[id2label[4]] = [tokenizer.decode(token).upper().replace(" ", "") for token in listToken[4]]
     print(keyExtracted)
     labels = [model.config.id2label[prediction] for prediction in predictions]
     if output_image:
