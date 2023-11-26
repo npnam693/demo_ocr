@@ -102,7 +102,12 @@ def run_inference(path, model=model, processor=processor, output_image=True):
         else:
           listToken[predictions[i]].append(encoding["input_ids"][0][i])
         curBbox = bBoxs[i]
+        j = i - 1 
+        while (torch.equal(curBbox, bBoxs[j]) and curLabel != predictions[i]):
+          listToken[predictions[i]].append(encoding["input_ids"][0][j])
+          j = j - 1
         curLabel = predictions[i]
+        listToken[predictions[i]].append(encoding["input_ids"][0][i])
 
     # print(listToken)
     keyExtracted[id2label[1]] = tokenizer.decode(listToken[1]).upper()
