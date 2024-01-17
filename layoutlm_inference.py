@@ -4,7 +4,7 @@ from transformers import LayoutLMForTokenClassification, LayoutLMv2Processor, La
 from PIL import Image, ImageDraw, ImageFont
 import io
 import base64
-from preprocess import preprocess_image
+from preprocess import preprocess_image_moi, preprocess_image_cu
 import cv2
 import numpy as np
 import torch
@@ -68,7 +68,7 @@ def run_inference(path, model=model, processor=processor, output_image=True):
 
     # image = Image.open(path)
     image = Image.open(io.BytesIO(path))
-    image = preprocess_image(np.array(image))
+    image = preprocess_image_moi(np.array(image))
     encoding = processor(image, return_tensors="pt")
     # print(encoding)
     del encoding["image"]
@@ -109,7 +109,7 @@ def run_inference(path, model=model, processor=processor, output_image=True):
     keyExtracted[id2label[2]] = tokenizer.decode(listToken[2]).upper().replace(" ", "")
     keyExtracted[id2label[3]] = tokenizer.decode(listToken[3]).upper()
     keyExtracted[id2label[4]] = [tokenizer.decode(token).upper().replace(" ", "") for token in listToken[4]]
-    print(keyExtracted)
+    # print(keyExtracted)
     labels = [model.config.id2label[prediction] for prediction in predictions]
     if output_image:
         return keyExtracted, draw_boxes(image, encoding["bbox"][0], labels)

@@ -5,10 +5,12 @@ import os
 from PIL import Image, ImageDraw, ImageFont
 import io
 import base64
+from flask_cors import CORS
+
 
 app = Flask(__name__)
-
-
+app.config['CORS_HEADERS'] = 'Content-Type'
+CORS(app)
 
 # routes
 @app.route("/", methods=['GET', 'POST'])
@@ -28,7 +30,8 @@ def get_output():
 
 @app.route("/api/process", methods = ['POST'])
 def process_img():
-    file = request.files['my_image']
+    file = request.files['file']
+    print(file.filename)
     p, image = run_inference(file.read())
     data = {
       'total': p["total"],
