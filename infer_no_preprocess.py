@@ -49,7 +49,6 @@ def draw_boxes(image, boxes, predictions):
         if prediction == "O":
             continue
         # print(prediction, box)
-        # print(prediction, box)
         draw.rectangle(box, outline="black")
         draw.rectangle(box, outline=label2color[prediction])
         draw.text((box[0] + 10, box[1] - 10), text=prediction, fill=label2color[prediction], font=font)
@@ -69,7 +68,8 @@ def run_inference(path, model=model, processor=processor, output_image=True):
 
     # image = Image.open(path)
     image = Image.open(io.BytesIO(path))
-    image = preprocess_image_moi(np.array(image))
+    image = preprocess_image_cu(np.array(image))
+
     encoding = processor(image, return_tensors="pt")
     # print(encoding)
     del encoding["image"]

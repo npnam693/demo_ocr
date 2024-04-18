@@ -32,10 +32,10 @@
 	{% if prediction %}
     <div class="row">
       <div class="col-md-5">
-        <img src="data:image/png;base64,{{img_path}}" width="100%" alt="receipt"/>
+        <img src="data:image/png;base64,{{image}}" width="100%" alt="receipt"/>
       </div>
       <div class="col-md-7">
-        <h2 style="font-weight: 600; font-size: 20px;"> Your Prediction:</h2>
+        <h2 style="font-weight: 600; font-size: 20px;"> Your Prediction: {{img_path}}</h2>
         <p><strong>Company:</strong> {{prediction.company}}</p>
         <p><strong>Address:</strong> {{prediction.address}}</p>
         <p><strong>Date:</strong> {{prediction.date}}</p>
