@@ -49,6 +49,7 @@ def draw_boxes(image, boxes, predictions):
         if prediction == "O":
             continue
         # print(prediction, box)
+        # print(prediction, box)
         draw.rectangle(box, outline="black")
         draw.rectangle(box, outline=label2color[prediction])
         draw.text((box[0] + 10, box[1] - 10), text=prediction, fill=label2color[prediction], font=font)
