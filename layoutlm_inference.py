@@ -8,13 +8,13 @@ from preprocess import preprocess_image_moi, preprocess_image_cu
 import cv2
 import numpy as np
 import torch
-# tokenizer = LayoutLMv2TokenizerFast.from_pretrained("microsoft/layoutlmv2-base-uncased")
-# model = LayoutLMForTokenClassification.from_pretrained("trng1305/layoutlmv2-sroie-test")
-# processor = LayoutLMv2Processor.from_pretrained("trng1305/layoutlmv2-sroie-test")
+tokenizer = LayoutLMv2TokenizerFast.from_pretrained("microsoft/layoutlmv2-base-uncased")
+model = LayoutLMForTokenClassification.from_pretrained("trng1305/layoutlmv2-sroie-test")
+processor = LayoutLMv2Processor.from_pretrained("trng1305/layoutlmv2-sroie-test")
 
 
-tokenizer = LayoutLMv2TokenizerFast.from_pretrained("./my-tokenizer")
-model = LayoutLMForTokenClassification.from_pretrained("./my-model")
+# tokenizer = LayoutLMv2TokenizerFast.from_pretrained("./my-tokenizer")
+# model = LayoutLMForTokenClassification.from_pretrained("./my-model")
 processor = LayoutLMv2Processor(LayoutLMv2ImageProcessor(tesseract_config=r'--oem 3 --psm 6'), tokenizer)
 # processor = LayoutLMv2Processor.from_pretrained("./my-processor")
 
