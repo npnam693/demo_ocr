@@ -1,3 +1,15 @@
 transformers==4.35.2
 datasets==2.15.0
 Pillow==9.5.0
+opencv-python== 4.9.0.80
+Flask==3.0.3
+flask_cors==4.0.0
+imutils==0.5.4
+matplotlib==3.8.4
+numpy==1.26.4
+Pillow==10.3.0
+pytesseract==0.3.10
+rembg==2.0.56
+scipy==1.13.0
+scikit-image==0.20.0 
+torch==2.2.2
